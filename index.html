@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Earnings Flow" />
+<meta name="theme-color" content="#1B4332" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<title>Earnings Flow Tracker</title>
+<style>
+  :root {
+    --green: #1B4332;
+    --green-light: #2D6A4F;
+    --cream: #FAF7F0;
+    --paper: #FCFBF7;
+    --ink: #1D2B3A;
+    --gold: #9C6B1F;
+    --red: #B23A48;
+    --brown: #5A4632;
+    --line: #E4DED0;
+    --line2: #ECE7DA;
+    --muted: #8A8371;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', serif;
+    display: flex;
+  }
+  .spine {
+    width: 8px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--green), var(--green-light));
+    flex-shrink: 0;
+  }
+  .wrap {
+    flex: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+    width: 100%;
+  }
+  header { margin-bottom: 20px; }
+  .eyebrow {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  h1 { font-size: 28px; margin: 0; color: var(--green); }
+  .rule {
+    height: 2px;
+    margin-top: 12px;
+    opacity: 0.5;
+    background: repeating-linear-gradient(90deg, var(--green) 0 8px, transparent 8px 12px);
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 12px 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card .bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .card .label {
+    font-family: 'Courier New', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .card .value {
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .panel h2 { margin: 0; font-size: 17px; color: var(--green); }
+  .link-btn {
+    background: none;
+    border: none;
+    color: var(--red);
+    font-family: inherit;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+    padding: 0;
+  }
+  form { display: flex; flex-direction: column; gap: 12px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.span2 { grid-column: span 2; }
+  .field.span3 { grid-column: 1 / -1; }
+  .field label {
+    font-family: 'Courier New', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  input {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 9px 10px;
+    border: 1px solid #D8D2C4;
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+    width: 100%;
+  }
+  input[type="number"] {
+    font-family: 'Courier New', monospace;
+    text-align: right;
+  }
+  .error { color: var(--red); font-size: 13px; }
+  .primary-btn {
+    align-self: flex-start;
+    background: var(--green);
+    color: var(--cream);
+    border: none;
+    border-radius: 4px;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+  }
+  .empty { color: var(--muted); font-size: 14px; padding: 16px 4px; font-style: italic; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: right;
+    padding: 8px 8px;
+    border-bottom: 2px solid var(--green);
+    font-family: 'Courier New', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--green);
+    white-space: nowrap;
+  }
+  th:first-child, th:nth-child(2), th:nth-child(3) { text-align: left; }
+  tr { border-bottom: 1px solid var(--line2); }
+  td { padding: 8px; text-align: left; white-space: nowrap; }
+  td.num {
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    white-space: nowrap;
+  }
+  td.actions { text-align: right; white-space: nowrap; }
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    color: var(--green);
+  }
+  .icon-btn.del { color: var(--red); }
+  tfoot tr {
+    border-top: 2px solid var(--green);
+    font-weight: 700;
+    background: #F4F1E8;
+  }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tab {
+    background: var(--paper);
+    border: 1px solid #D8D2C4;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--brown);
+  }
+  .tab.active { background: var(--green); border-color: var(--green); color: var(--cream); }
+  footer {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .storage-note {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+  <div class="spine"></div>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Fluid Accounting</div>
+      <h1>Earnings Flow Tracker</h1>
+      <div class="rule"></div>
+    </header>
+
+    <section class="cards" id="cards"></section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="formTitle">New Entry</h2>
+        <button type="button" class="link-btn" id="cancelEdit" style="display:none;">Cancel edit</button>
+      </div>
+      <form id="entryForm">
+        <div class="grid">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="f-date" required />
+          </div>
+          <div class="field span2">
+            <label>Job / Client</label>
+            <input type="text" id="f-client" placeholder="e.g. Waluke Succession — MCSUCC/356/2018" required />
+          </div>
+          <div class="field span3">
+            <label>Job Description</label>
+            <input type="text" id="f-description" placeholder="e.g. Drafting and filing of application" />
+          </div>
+          <div class="field">
+            <label>Charges (KES)</label>
+            <input type="number" step="0.01" id="f-charges" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label>Payments (KES)</label>
+            <input type="number" step="0.01" id="f-payments" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label>Expenses (KES)</label>
+            <input type="number" step="0.01" id="f-expenses" placeholder="0.00" />
+          </div>
+          <div class="field">
+            <label>Charge Off (KES)</label>
+            <input type="number" step="0.01" id="f-chargeOff" placeholder="0.00" />
+          </div>
+        </div>
+        <div class="error" id="formError"></div>
+        <button type="submit" class="primary-btn" id="submitBtn">Add entry</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Ledger</h2>
+      <div id="ledgerWrap"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Cumulative Analytics</h2>
+        <div class="tabs" id="tabs"></div>
+      </div>
+      <div id="analyticsWrap"></div>
+    </section>
+
+    <footer>
+      Dues = Charges − Payments &nbsp;·&nbsp; Balance = Dues − Charge Off &nbsp;·&nbsp; Net Earnings = Payments − Expenses
+    </footer>
+    <div class="storage-note">Data is stored locally in this browser only.</div>
+  </div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "eft_entries_v1";
+  const PERIODS = [
+    { key: "daily", label: "Daily" },
+    { key: "weekly", label: "Weekly" },
+    { key: "monthly", label: "Monthly" },
+    { key: "quarterly", label: "Quarterly" },
+    { key: "yearly", label: "Yearly" },
+  ];
+  let period = "monthly";
+  let editingId = null;
+
+  const fmt = (n) =>
+    new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 2 }).format(Number(n) || 0);
+  const num = (v) => (isNaN(parseFloat(v)) ? 0 : parseFloat(v));
+  const todayISO = () => new Date().toISOString().slice(0, 10);
+  const uid = () => Math.random().toString(36).slice(2, 10);
+
+  function isoWeek(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day = date.getUTCDay() || 7;
+    date.setUTCDate(date.getUTCDate() + 4 - day);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+    return date.getUTCFullYear() + "-W" + String(weekNo).padStart(2, "0");
+  }
+  function bucketKey(dateStr, p) {
+    const d = new Date(dateStr + "T00:00:00");
+    const y = d.getFullYear(), m = d.getMonth();
+    if (p === "daily") return dateStr;
+    if (p === "weekly") return isoWeek(d);
+    if (p === "monthly") return y + "-" + String(m + 1).padStart(2, "0");
+    if (p === "quarterly") return y + "-Q" + (Math.floor(m / 3) + 1);
+    if (p === "yearly") return "" + y;
+    return dateStr;
+  }
+  function periodLabel(key) {
+    if (period === "weekly") return key.replace("-W", " · Week ");
+    if (period === "quarterly") return key.replace("-Q", " · Q");
+    return key;
+  }
+
+  function loadEntries() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveEntries(entries) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch (e) {}
+  }
+
+  let entries = loadEntries();
+
+  function derive(e) {
+    const charges = num(e.charges), payments = num(e.payments), expenses = num(e.expenses), chargeOff = num(e.chargeOff);
+    const dues = charges - payments;
+    const balance = dues - chargeOff;
+    const net = payments - expenses;
+    return { charges, payments, expenses, chargeOff, dues, balance, net };
+  }
+
+  function getRows() {
+    return [...entries].sort((a, b) => (a.date < b.date ? 1 : -1)).map((e) => Object.assign({}, e, derive(e)));
+  }
+
+  function getGrandTotals(rows) {
+    return rows.reduce((acc, r) => ({
+      charges: acc.charges + r.charges, payments: acc.payments + r.payments,
+      expenses: acc.expenses + r.expenses, chargeOff: acc.chargeOff + r.chargeOff,
+      dues: acc.dues + r.dues, balance: acc.balance + r.balance, net: acc.net + r.net,
+    }), { charges: 0, payments: 0, expenses: 0, chargeOff: 0, dues: 0, balance: 0, net: 0 });
+  }
+
+  function getBuckets() {
+    const map = new Map();
+    for (const e of entries) {
+      const key = bucketKey(e.date, period);
+      const d = derive(e);
+      if (!map.has(key)) map.set(key, { key, charges: 0, payments: 0, expenses: 0, chargeOff: 0, dues: 0, count: 0 });
+      const b = map.get(key);
+      b.charges += d.charges; b.payments += d.payments; b.expenses += d.expenses;
+      b.chargeOff += d.chargeOff; b.dues += d.dues; b.count += 1;
+    }
+    const arr = Array.from(map.values()).sort((a, b) => (a.key > b.key ? 1 : -1));
+    let running = 0;
+    for (const b of arr) {
+      b.balance = b.dues - b.chargeOff;
+      b.net = b.payments - b.expenses;
+      running += b.net;
+      b.cumulativeNet = running;
+    }
+    return arr.reverse();
+  }
+
+  function renderCards() {
+    const rows = getRows();
+    const t = getGrandTotals(rows);
+    const items = [
+      ["Charges", t.charges, "#1B4332"],
+      ["Payments", t.payments, "#2D6A4F"],
+      ["Dues", t.dues, "#9C6B1F"],
+      ["Balance", t.balance, "#B23A48"],
+      ["Expenses", t.expenses, "#5A4632"],
+      ["Net Earnings", t.net, "#1D2B3A"],
+    ];
+    document.getElementById("cards").innerHTML = items.map(([label, val, color]) =>
+      `<div class="card"><div class="bar" style="background:${color}"></div>
+        <div class="label">${label}</div>
+        <div class="value" style="color:${color}">${fmt(val)}</div></div>`
+    ).join("");
+  }
+
+  function renderLedger() {
+    const rows = getRows();
+    const wrap = document.getElementById("ledgerWrap");
+    if (rows.length === 0) {
+      wrap.innerHTML = '<div class="empty">No entries yet. Add your first job above to start the ledger.</div>';
+      return;
+    }
+    const t = getGrandTotals(rows);
+    const bodyRows = rows.map((r) => `
+      <tr>
+        <td>${r.date}</td>
+        <td style="font-weight:600">${escapeHtml(r.client)}</td>
+        <td style="color:#6b6558">${escapeHtml(r.description || "")}</td>
+        <td class="num">${fmt(r.charges)}</td>
+        <td class="num">${fmt(r.payments)}</td>
+        <td class="num" style="color:${r.dues > 0 ? '#9C6B1F' : '#2D6A4F'}">${fmt(r.dues)}</td>
+        <td class="num">${fmt(r.chargeOff)}</td>
+        <td class="num" style="color:${r.balance > 0 ? '#B23A48' : '#2D6A4F'}">${fmt(r.balance)}</td>
+        <td class="num">${fmt(r.expenses)}</td>
+        <td class="actions">
+          <button class="icon-btn" data-edit="${r.id}" title="Edit">&#9998;</button>
+          <button class="icon-btn del" data-del="${r.id}" title="Delete">&#10005;</button>
+        </td>
+      </tr>`).join("");
+    wrap.innerHTML = `
+      <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Job / Client</th><th>Description</th><th>Charges</th><th>Payments</th>
+          <th>Dues</th><th>Charge Off</th><th>Balance</th><th>Expenses</th><th></th>
+        </tr></thead>
+        <tbody>${bodyRows}</tbody>
+        <tfoot><tr>
+          <td colspan="3">Totals</td>
+          <td class="num">${fmt(t.charges)}</td>
+          <td class="num">${fmt(t.payments)}</td>
+          <td class="num">${fmt(t.dues)}</td>
+          <td class="num">${fmt(t.chargeOff)}</td>
+          <td class="num">${fmt(t.balance)}</td>
+          <td class="num">${fmt(t.expenses)}</td>
+          <td></td>
+        </tr></tfoot>
+      </table>
+      </div>`;
+    wrap.querySelectorAll("[data-edit]").forEach((btn) =>
+      btn.addEventListener("click", () => startEdit(btn.getAttribute("data-edit"))));
+    wrap.querySelectorAll("[data-del]").forEach((btn) =>
+      btn.addEventListener("click", () => removeEntry(btn.getAttribute("data-del"))));
+  }
+
+  function renderTabs() {
+    document.getElementById("tabs").innerHTML = PERIODS.map((p) =>
+      `<button class="tab ${p.key === period ? "active" : ""}" data-period="${p.key}">${p.label}</button>`
+    ).join("");
+    document.querySelectorAll("[data-period]").forEach((btn) =>
+      btn.addEventListener("click", () => { period = btn.getAttribute("data-period"); renderAll(); }));
+  }
+
+  function renderAnalytics() {
+    const buckets = getBuckets();
+    const wrap = document.getElementById("analyticsWrap");
+    if (buckets.length === 0) {
+      wrap.innerHTML = '<div class="empty">Add entries to see period analytics.</div>';
+      return;
+    }
+    const rows = buckets.map((b) => `
+      <tr>
+        <td style="font-weight:600">${periodLabel(b.key)}</td>
+        <td class="num">${b.count}</td>
+        <td class="num">${fmt(b.charges)}</td>
+        <td class="num">${fmt(b.payments)}</td>
+        <td class="num">${fmt(b.dues)}</td>
+        <td class="num" style="color:${b.balance > 0 ? '#B23A48' : '#2D6A4F'}">${fmt(b.balance)}</td>
+        <td class="num">${fmt(b.expenses)}</td>
+        <td class="num" style="color:${b.net >= 0 ? '#2D6A4F' : '#B23A48'}">${fmt(b.net)}</td>
+        <td class="num" style="font-weight:700">${fmt(b.cumulativeNet)}</td>
+      </tr>`).join("");
+    wrap.innerHTML = `
+      <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th>Period</th><th>Entries</th><th>Charges</th><th>Payments</th><th>Dues</th>
+          <th>Balance</th><th>Expenses</th><th>Net Earnings</th><th>Cumulative Net</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      </div>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function resetForm() {
+    document.getElementById("entryForm").reset();
+    document.getElementById("f-date").value = todayISO();
+    editingId = null;
+    document.getElementById("formTitle").textContent = "New Entry";
+    document.getElementById("submitBtn").textContent = "Add entry";
+    document.getElementById("cancelEdit").style.display = "none";
+    document.getElementById("formError").textContent = "";
+  }
+
+  function startEdit(id) {
+    const e = entries.find((x) => x.id === id);
+    if (!e) return;
+    editingId = id;
+    document.getElementById("f-date").value = e.date;
+    document.getElementById("f-client").value = e.client;
+    document.getElementById("f-description").value = e.description || "";
+    document.getElementById("f-charges").value = e.charges;
+    document.getElementById("f-payments").value = e.payments;
+    document.getElementById("f-expenses").value = e.expenses;
+    document.getElementById("f-chargeOff").value = e.chargeOff;
+    document.getElementById("formTitle").textContent = "Edit Entry";
+    document.getElementById("submitBtn").textContent = "Save changes";
+    document.getElementById("cancelEdit").style.display = "inline";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function removeEntry(id) {
+    entries = entries.filter((e) => e.id !== id);
+    saveEntries(entries);
+    if (editingId === id) resetForm();
+    renderAll();
+  }
+
+  document.getElementById("entryForm").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    const client = document.getElementById("f-client").value.trim();
+    const date = document.getElementById("f-date").value;
+    if (!client) { document.getElementById("formError").textContent = "Job / Client is required."; return; }
+    if (!date) { document.getElementById("formError").textContent = "Date is required."; return; }
+    const data = {
+      date, client,
+      description: document.getElementById("f-description").value.trim(),
+      charges: document.getElementById("f-charges").value,
+      payments: document.getElementById("f-payments").value,
+      expenses: document.getElementById("f-expenses").value,
+      chargeOff: document.getElementById("f-chargeOff").value,
+    };
+    if (editingId) {
+      entries = entries.map((e) => (e.id === editingId ? Object.assign({ id: editingId }, data) : e));
+    } else {
+      entries.push(Object.assign({ id: uid() }, data));
+    }
+    saveEntries(entries);
+    resetForm();
+    renderAll();
+  });
+
+  document.getElementById("cancelEdit").addEventListener("click", resetForm);
+
+  function renderAll() {
+    renderCards();
+    renderLedger();
+    renderTabs();
+    renderAnalytics();
+  }
+
+  document.getElementById("f-date").value = todayISO();
+  renderTabs();
+  renderAll();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
